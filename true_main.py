@@ -4,7 +4,7 @@ def introducao():
     ret = f"Digite:\n\t1.Upload\n\t2.Download\n"
     return ret
 
-servidor = Servidor("172.29.33.65","servidor_redes","servidorredes123")
+servidor = Servidor("192.168.37.73","servidor_redes","servidorredes123")
 servidor.connect()
 servidor.login()
 servidor.secure_data_connection()
