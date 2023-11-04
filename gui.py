@@ -1,6 +1,5 @@
 # Bibliotecas principais:
 
-# import tkinter
 import customtkinter as ctk
 from tkinter import filedialog
 from PIL import Image
@@ -12,7 +11,7 @@ Definição de classes:
 
 
 class Imagem(ctk.CTkFrame):
-    def __init__(self, master, nome: str, imagem_pil, _id: int):
+    def __init__(self, master, nome, imagem_pil):
         super().__init__(master)
 
         # Centraliza a coluna principal
@@ -37,9 +36,6 @@ class Imagem(ctk.CTkFrame):
         # Atributo de botão de seleção
         self.selecionado = ctk.CTkCheckBox(self, text="", command=self.toggle_selecionar)
         self.selecionado.grid(row=1, column=1, padx=25, pady=5)
-
-        # Atributo de identificador
-        self.id = _id
 
         # Atributo de nome
         self.nome = nome
@@ -73,11 +69,8 @@ class App(ctk.CTk):
         Variáveis auxiliares:
         '''
         # Contador de linhas e colunas para auxiliar o posicionamento das imagens
-        self.row_cnt: int = 0
-        self.col_cnt: int = 0
-
-        # Identificador de cada imagem
-        self.id: int = 0
+        self.row_cnt = 0
+        self.col_cnt = 0
 
         '''
         Widgets do aplicativo: 
@@ -107,13 +100,12 @@ class App(ctk.CTk):
         botao_upload_arquivo = ctk.CTkButton(self, text="+ Inserir imagem", command=self.funcao_upload_arquivo)
         botao_upload_arquivo.grid(row=2, column=0, padx=10, pady=10, columnspan=4)
 
-    def insere_no_quadro(self, nome: str, img):
-        imagem = Imagem(self.quadro_fotos, nome, img, self.id)
+    def insere_no_quadro(self, nome, img):
+        imagem = Imagem(self.quadro_fotos, nome, img)
         imagem.grid(row=int(self.row_cnt / 4), column=self.col_cnt % 4, pady=(0, 20), padx=10)
 
         self.row_cnt += 1
         self.col_cnt += 1
-        self.id += 1
 
     def funcao_upload_arquivo(self):
         caminho_arquivo: str = filedialog.askopenfilename()
@@ -139,21 +131,19 @@ class App(ctk.CTk):
         if cliente.delete(selecionados):
             quadro_novo = ctk.CTkFrame(self)
 
-            self.id = 0
             self.row_cnt = 0
             self.col_cnt = 0
 
-            temp_selecionados: dict = selecionados_complemento.copy()
+            temp_selecionados = selecionados_complemento.copy()
             selecionados_complemento.clear()
             selecionados.clear()
 
             for nome, img in temp_selecionados.items():
-                imagem = Imagem(quadro_novo, nome, img, self.id)
+                imagem = Imagem(quadro_novo, nome, img)
                 imagem.grid(row=int(self.row_cnt / 4), column=self.col_cnt % 4, pady=(0, 20), padx=10)
 
                 self.row_cnt += 1
                 self.col_cnt += 1
-                self.id += 1
 
             self.quadro_fotos.grid_forget()
             self.quadro_fotos = quadro_novo
@@ -173,8 +163,8 @@ if __name__ == '__main__':
     ctk.set_default_color_theme("green")
 
     # Usamos dois sets para adicionar, remover e verificar itens selecionados em O(1)
-    selecionados: dict = dict()
-    selecionados_complemento: dict = dict()
+    selecionados = {}
+    selecionados_complemento = {}
 
-    app: App = App()
+    app = App()
     app.mainloop()
