@@ -72,7 +72,7 @@ if servidor.get_ftp().getwelcome().startswith("220"):
                 # novo nome do arquivo desejado
                 novo_nome = input("Digite o novo nome: ")
 
-                if servidor.rename_file(arquivo, novo_nome):
+                if servidor.rename_image(arquivo, novo_nome):
                     print("Nome alterado com sucesso")
 
                 else:

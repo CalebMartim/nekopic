@@ -153,7 +153,7 @@ class Servidor:
             return False
         
     # Renomear uma imagem no servidor
-    def rename_file(self, arquivo, novo_nome):
+    def rename_image(self, arquivo, novo_nome):
         # define o diretorio de trabalho onde se alterara o nome de uma imagem
         self.set_wd(self.__wd)
 
@@ -162,7 +162,10 @@ class Servidor:
             if arquivo not in self.__ftp.nlst():
                 print(f"\"{arquivo}\" nao encontrado.")
                 return False
-            
+
+            # preserva a identificacao do tipo da imagem no novo nome
+            novo_nome += '.' + arquivo.split('.')[-1]
+
             # renomeia o arquivo
             ret = self.__ftp.rename(arquivo, novo_nome)
 
