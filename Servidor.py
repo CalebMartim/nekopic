@@ -2,8 +2,9 @@
 import ftplib
 import os
 
+
 class Servidor:
-    def __init__(self,host,user,password, wd = None):
+    def __init__(self, host, user, password, wd=None):
         self.__host = host
         self.__user = user
         self.__password = password
@@ -12,7 +13,7 @@ class Servidor:
         # inicia o servidor com um timeout de 30s,
         # isto e, ha um tempo de espera de no maximo
         # 30s para se conectar no servidor antes de ser removido
-        self.__ftp = ftplib.FTP_TLS(timeout = 30)
+        self.__ftp = ftplib.FTP_TLS(timeout=30)
 
     # retorna o objeto FTP
     def get_ftp(self):
@@ -28,7 +29,7 @@ class Servidor:
 
     # login no servidor dado user e senha
     def login(self):
-        self.__ftp.login(user=self.__user,passwd=self.__password)
+        self.__ftp.login(user=self.__user, passwd=self.__password)
 
     # estabelece um conexao segura (servidor FTP_TLS)
     def secure_data_connection(self):
@@ -41,7 +42,8 @@ class Servidor:
     # define um novo diretorio de trabalho atual
     def set_wd(self, new_wd):
         try:
-            if new_wd == self.__wd: return
+            if new_wd == self.__wd:
+                return
 
             self.__wd = new_wd
             self.__ftp.cwd(self.__wd)
@@ -51,7 +53,8 @@ class Servidor:
             return
     
     # retorna o nome do arquivo dependendo do OS
-    def __get_arquivo(arquivo):
+    @staticmethod
+    def __get_arquivo(arquivo: str):
         # linux
         if "/" in arquivo:
             return arquivo.split("/")[-1]
@@ -61,7 +64,8 @@ class Servidor:
             return arquivo.split("\\")[-1]
     
     # retorna o diretorio dependendo do OS
-    def __get_diretorio(diretorio):
+    @staticmethod
+    def __get_diretorio(diretorio: str):
         # linux
         if "/" in diretorio:
             return diretorio + "/"
@@ -71,7 +75,7 @@ class Servidor:
             return diretorio + "\\"
 
     # Upload de imagem no servidor
-    def upload_image(self, arquivo):
+    def upload_image(self, arquivo: str):
         # define o diretorio de trabalho onde sera feito o upload
         self.set_wd(self.__wd)
 
@@ -82,7 +86,7 @@ class Servidor:
                     arquivo_upload = Servidor.__get_arquivo(arquivo)
 
                     # upload
-                    ret = self.__ftp.storbinary(f'STOR {arquivo_upload}', file, blocksize = 1024*1024)
+                    ret = self.__ftp.storbinary(f'STOR {arquivo_upload}', file, blocksize=1024*1024)
                     
                     # fecha o arquivo
                     file.close()

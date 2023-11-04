@@ -2,12 +2,15 @@
 from Servidor import Servidor
 
 # funcao de introducao do programa: apresenta as operacoes do servidor
+
+
 def introducao():
     ret = f"Digite:\n\t1.Upload\n\t2.Download\n\t3.Deletar\n\t4.Renomear arquivo\n\t0.Sair\n"
     return ret
 
+
 # entrar no servidor
-servidor = Servidor("192.168.68.122","servidor_redes","servidorredes123")
+servidor = Servidor("192.168.68.122", "servidor_redes", "servidorredes123")
 servidor.connect()
 servidor.login()
 servidor.set_wd("/files/images")
