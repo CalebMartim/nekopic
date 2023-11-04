@@ -37,10 +37,10 @@ class Cliente:
         else:
             return True
 
-    def delete(self, arquivos: set):
+    def delete(self, arquivos: dict):
         falhas: list[str] = []
 
-        for arquivo in arquivos:
+        for arquivo in arquivos.keys():
             if self.servidor.delete_image(arquivo):
                 continue
             else:
@@ -52,3 +52,6 @@ class Cliente:
 
     def renomear(self, old: str, new: str) -> bool:
         return self.servidor.rename_image(old, new)
+
+    def imagens(self):
+        return self.servidor.imagens()

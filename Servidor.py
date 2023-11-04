@@ -1,6 +1,7 @@
 # bibliotecas essenciais
 import ftplib
 import os
+from PIL import Image
 
 
 class Servidor:
@@ -179,3 +180,9 @@ class Servidor:
         except ftplib.error_perm as e:
             print(f"Erro: {e}")
             return False
+
+    def imagens(self):
+        imgs = []
+        for arquivo in self.get_files():
+            imgs.append((arquivo, Image.open(arquivo)))
+        return imgs
