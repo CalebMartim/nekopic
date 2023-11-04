@@ -37,8 +37,8 @@ class Imagem(ctk.CTkFrame):
         self.label.grid(row=0, column=0, pady=(0, 10), columnspan=2)
 
         # Atributo de nome
-        self.nome = ctk.CTkLabel(self, text=pre_nome)
-        self.nome.grid(row=1, column=0, padx=10, pady=5)
+        self.nome_label = ctk.CTkLabel(self, text=pre_nome)
+        self.nome_label.grid(row=1, column=0, padx=10, pady=5)
 
         # Atributo de botão de seleção
         self.selecionado = ctk.CTkCheckBox(self, text="", command=self.toggle_selecionar)
@@ -50,12 +50,15 @@ class Imagem(ctk.CTkFrame):
         # Atributo de diretorio
         self.diretorio = caminho_arquivo
 
+        # Atributo de nome
+        self.nome = pre_nome
+
         # Insere a imagem no hashmap de selecionados
         selecionados_complemento.add(self.diretorio)
 
     def toggle_selecionar(self):
-        if self.id in selecionados_complemento:
-            selecionados_complemento.remove(self.id)
+        if self.diretorio in selecionados_complemento:
+            selecionados_complemento.remove(self.diretorio)
         else:
             selecionados_complemento.add(self.diretorio)
 

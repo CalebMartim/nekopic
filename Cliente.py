@@ -23,7 +23,7 @@ class Cliente:
     def upload(self, arquivo: str) -> bool:
         return self.servidor.upload_image(arquivo)
 
-    def download(self, arquivos: list[str], destino: str) -> list[str]:
+    def download(self, arquivos: list[str], destino: str):
         falhas: list[str] = []
 
         for arquivo in arquivos:
@@ -32,9 +32,12 @@ class Cliente:
             else:
                 falhas.append(arquivo)
 
-        return falhas
+        if falhas:
+            return falhas
+        else:
+            return True
 
-    def delete(self, arquivos: set[str]) -> list[str]:
+    def delete(self, arquivos: set):
         falhas: list[str] = []
 
         for arquivo in arquivos:
@@ -42,8 +45,10 @@ class Cliente:
                 continue
             else:
                 falhas.append(arquivo)
-
-        return falhas
+        if falhas:
+            return falhas
+        else:
+            return True
 
     def renomear(self, old: str, new: str) -> bool:
         return self.servidor.rename_image(old, new)
