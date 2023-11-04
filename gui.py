@@ -4,6 +4,7 @@
 import customtkinter as ctk
 from tkinter import filedialog
 from PIL import Image
+from Cliente import Cliente
 
 '''
 Definição de classes:
@@ -50,13 +51,18 @@ class Imagem(ctk.CTkFrame):
         self.diretorio = caminho_arquivo
 
         # Insere a imagem no hashmap de selecionados
-        selecionados[self.id] = self.diretorio
+        selecionados_complemento.add(self.diretorio)
 
     def toggle_selecionar(self):
-        if self.id in selecionados:
-            selecionados.pop(self.id)
+        if self.id in selecionados_complemento:
+            selecionados_complemento.remove(self.id)
         else:
-            selecionados[self.id] = self.diretorio
+            selecionados_complemento.add(self.diretorio)
+
+        if self.nome in selecionados:
+            selecionados.remove(self.nome)
+        else:
+            selecionados.add(self.nome)
 
 
 class App(ctk.CTk):
@@ -106,39 +112,46 @@ class App(ctk.CTk):
         caminho_arquivo: str = filedialog.askopenfilename()
 
         if caminho_arquivo:
-            imagem = Imagem(self.quadro_fotos, caminho_arquivo, self.id)
-            imagem.grid(row=int(self.row_cnt / 4), column=self.col_cnt % 4, pady=(0, 20), padx=10)
+            if cliente.upload(caminho_arquivo):
+                imagem = Imagem(self.quadro_fotos, caminho_arquivo, self.id)
+                imagem.grid(row=int(self.row_cnt / 4), column=self.col_cnt % 4, pady=(0, 20), padx=10)
 
-            self.row_cnt += 1
-            self.col_cnt += 1
-            self.id += 1
+                self.row_cnt += 1
+                self.col_cnt += 1
+                self.id += 1
+            else:
+                print("Deu ruim")
 
     def deletar_fotos(self):
         """
         Funciona por refazer o quadro de fotos, adicionando nele
-        apenas os elementos que estáo no hashmap 'selecionados'
+        apenas os elementos que estáo no set 'selecionados_complemento'
         """
 
-        quadro_novo = ctk.CTkFrame(self)
+        if cliente.delete(selecionados):
+            quadro_novo = ctk.CTkFrame(self)
 
-        self.id = 0
-        self.row_cnt = 0
-        self.col_cnt = 0
+            self.id = 0
+            self.row_cnt = 0
+            self.col_cnt = 0
 
-        temp_selecionados: dict = selecionados.copy()
-        selecionados.clear()
+            temp_selecionados: set = selecionados_complemento.copy()
+            selecionados_complemento.clear()
+            selecionados.clear()
 
-        for identificador, diretorio in temp_selecionados.items():
-            imagem = Imagem(quadro_novo, diretorio, self.id)
-            imagem.grid(row=int(self.row_cnt / 4), column=self.col_cnt % 4, pady=(0, 20), padx=10)
+            for diretorio in temp_selecionados:
+                imagem = Imagem(quadro_novo, diretorio, self.id)
+                imagem.grid(row=int(self.row_cnt / 4), column=self.col_cnt % 4, pady=(0, 20), padx=10)
 
-            self.row_cnt += 1
-            self.col_cnt += 1
-            self.id += 1
+                self.row_cnt += 1
+                self.col_cnt += 1
+                self.id += 1
 
-        self.quadro_fotos.grid_forget()
-        self.quadro_fotos = quadro_novo
-        self.quadro_fotos.grid(row=1, column=0, padx=10, pady=(0, 10), columnspan=2)
+            self.quadro_fotos.grid_forget()
+            self.quadro_fotos = quadro_novo
+            self.quadro_fotos.grid(row=1, column=0, padx=10, pady=(0, 10), columnspan=2)
+        else:
+            print("Deu ruim")
 
 
 if __name__ == '__main__':
@@ -146,11 +159,14 @@ if __name__ == '__main__':
     Configurações iniciais e instanciação da classe App:
     '''
 
+    cliente = Cliente()
+
     ctk.set_appearance_mode("dark")
     ctk.set_default_color_theme("green")
 
-    # Usamos um dicionário para adicionar, remover e verificar itens selecionados em O(1)
-    selecionados: dict = {}
+    # Usamos dois sets para adicionar, remover e verificar itens selecionados em O(1)
+    selecionados: set = set()
+    selecionados_complemento: set = set()
 
     app: App = App()
     app.mainloop()
