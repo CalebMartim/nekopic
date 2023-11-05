@@ -2,6 +2,7 @@
 import ftplib
 import os
 from PIL import Image
+from io import BytesIO
 
 
 class Servidor:
@@ -19,7 +20,7 @@ class Servidor:
     # retorna o objeto FTP
     def get_ftp(self):
         return self.__ftp
-    
+
     # retorna uma lista dos arquivos presentes no diretorio de trabalho atual do servidor
     def get_files(self):
         return self.__ftp.nlst()
@@ -52,25 +53,25 @@ class Servidor:
         except ftplib.error_perm as e:
             print(f"Erro: {e}")
             return
-    
+
     # retorna o nome do arquivo dependendo do OS
     @staticmethod
     def __get_arquivo(arquivo: str):
         # linux
         if "/" in arquivo:
             return arquivo.split("/")[-1]
-        
+
         # windows
         else:
             return arquivo.split("\\")[-1]
-    
+
     # retorna o diretorio dependendo do OS
     @staticmethod
     def __get_diretorio(diretorio: str):
         # linux
         if "/" in diretorio:
             return diretorio + "/"
-        
+
         # windows
         else:
             return diretorio + "\\"
@@ -87,22 +88,22 @@ class Servidor:
                     arquivo_upload = Servidor.__get_arquivo(arquivo)
 
                     # upload
-                    ret = self.__ftp.storbinary(f'STOR {arquivo_upload}', file, blocksize=1024*1024)
-                    
+                    ret = self.__ftp.storbinary(f'STOR {arquivo_upload}', file, blocksize=1024 * 1024)
+
                     # fecha o arquivo
                     file.close()
-                
+
                 # mensagem de retorno: 226 = sucesso
                 return ret.startswith("226")
-            
+
             except FileNotFoundError:
                 print(f"\"{arquivo}\" nao encontrado")
                 return False
-        
+
         except ftplib.error_perm as e:
             print(f"Erro: {e}")
             return False
-    
+
     # Download de imagem no servidor
     def download_image(self, arquivo, diretorio_destino):
         # define o diretorio de trabalho onde sera feito o download
@@ -118,7 +119,7 @@ class Servidor:
             if arquivo not in self.get_files():
                 print(f"\"{arquivo}\" inexistente.")
                 return False
-            
+
             destino = Servidor.__get_diretorio(diretorio_destino)
 
             # abre o arquivo
@@ -128,25 +129,25 @@ class Servidor:
 
                 # fecha o arquivo
                 file.close()
-            
+
             # mensagem de retorno: 226 = sucesso
             return ret.startswith("226")
-            
+
         except ftplib.error_perm as e:
             print(f"Erro: {e}")
             return False
-    
+
     # Deletar uma imagem do servidor
     def delete_image(self, arquivo):
-        # define o diretorio de trabalho onde se deletara um arquivo 
+        # define o diretorio de trabalho onde se deletara um arquivo
         self.set_wd(self.__wd)
- 
+
         try:
             # verifica se o arquivo se encontra no diretorio de trabalho atual
             if arquivo not in self.get_files():
                 print(f"\"{arquivo}\" nao encontrado.")
                 return False
-            
+
             # deleta o arquivo
             ret = self.__ftp.delete(arquivo)
 
@@ -156,7 +157,7 @@ class Servidor:
         except ftplib.error_perm as e:
             print(f"Erro {e}")
             return False
-        
+
     # Renomear uma imagem no servidor
     def rename_image(self, arquivo, novo_nome):
         # define o diretorio de trabalho onde se alterara o nome de uma imagem
@@ -176,13 +177,20 @@ class Servidor:
 
             # mensagem de retorno: 250 = sucesso
             return ret.startswith("250")
-        
+
         except ftplib.error_perm as e:
             print(f"Erro: {e}")
             return False
 
     def imagens(self):
         imgs = []
+
         for arquivo in self.get_files():
-            imgs.append((arquivo, Image.open(arquivo)))
+            flo = BytesIO()
+            self.__ftp.retrbinary(f'RETR {arquivo}', flo.write)
+            flo.seek(0)
+            img = Image.open(flo)
+
+            imgs.append((arquivo, img))
+
         return imgs
