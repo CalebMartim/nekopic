@@ -17,13 +17,13 @@ class Cliente:
 
         # servidor.quit()
 
-    def conectar(self):
+    def conectar(self) -> bool:
         return self.servidor.get_ftp().getwelcome().startswith("220")
 
-    def upload(self, arquivo):
+    def upload(self, arquivo: str) -> bool:
         return self.servidor.upload_image(arquivo)
 
-    def download(self, arquivos, destino):
+    def download(self, arquivos, destino: str):
         falhas = []
 
         for arquivo in arquivos:
@@ -33,11 +33,11 @@ class Cliente:
                 falhas.append(arquivo)
 
         if falhas:
-            return falhas
+            return False, falhas
         else:
-            return True
+            return True, falhas
 
-    def delete(self, arquivos):
+    def delete(self, arquivos: dict):
         falhas = []
 
         for arquivo in arquivos.keys():
@@ -46,11 +46,11 @@ class Cliente:
             else:
                 falhas.append(arquivo)
         if falhas:
-            return falhas
+            return False, falhas
         else:
-            return True
+            return True, falhas
 
-    def renomear(self, old, new):
+    def renomear(self, old: str, new: str) -> bool:
         return self.servidor.rename_image(old, new)
 
     def imagens(self):
