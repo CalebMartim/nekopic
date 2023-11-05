@@ -185,18 +185,20 @@ class App(ctk.CTk):
         Pergunta do usuário o caminho para um arquivo,
         pega o nome do arquivo e insere no quadro de fotos
         """
-        caminho_arquivo: str = filedialog.askopenfilename()
-        if caminho_arquivo:
-            nome: int = caminho_arquivo.rfind('/')
-            if nome != -1:
-                nome: str = caminho_arquivo[nome + 1:]
-            else:
-                nome: str = caminho_arquivo
+        caminho_arquivos: str = filedialog.askopenfilenames()
 
-            if cliente.upload(caminho_arquivo):
-                self.quadro_fotos.inserir(nome, Image.open(caminho_arquivo))
-            else:
-                self.toplevel_window = JanelaFalha(self, arquivos=[nome])
+        if caminho_arquivos:
+            for caminho_arquivo in caminho_arquivos:
+                nome: int = caminho_arquivo.rfind('/')
+                if nome != -1:
+                    nome: str = caminho_arquivo[nome + 1:]
+                else:
+                    nome: str = caminho_arquivo
+
+                if cliente.upload(caminho_arquivo):
+                    self.quadro_fotos.inserir(nome, Image.open(caminho_arquivo))
+                else:
+                    self.toplevel_window = JanelaFalha(self, arquivos=[nome])
 
     def deletar_fotos(self):
         """
