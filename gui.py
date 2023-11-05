@@ -14,9 +14,6 @@ class Imagem(ctk.CTkFrame):
     def __init__(self, master, nome: str, imagem_pil):
         super().__init__(master)
 
-        # Centraliza a coluna principal
-        self.grid_columnconfigure(0, weight=1)
-
         # Imagem em si
         self.imagem_pil = imagem_pil
 
@@ -28,15 +25,21 @@ class Imagem(ctk.CTkFrame):
 
         # Passo necessário para deixar a imagem visível
         self.label = ctk.CTkLabel(self, image=self.imagem_ctk, text="")
-        self.label.grid(row=0, column=0, pady=(0, 10), columnspan=2)
+        self.label.grid(row=0, column=0, pady=(0, 10), columnspan=3)
+
+        # Atributo de botão de renomear
+        self.renomear = ctk.CTkButton(self, text="Renomear", command=self.editar_nome, width=10,
+                                      fg_color="#45444f")
 
         # Atributo de nome visível
-        self.nome_label = ctk.CTkLabel(self, text=nome)
-        self.nome_label.grid(row=1, column=0, padx=10, pady=5, sticky="ew")
+        self.nome_label = ctk.CTkLabel(self, text=nome.split('.')[0])
 
         # Atributo de botão de seleção
         self.selecionado = ctk.CTkCheckBox(self, text="", command=self.toggle_selecionar)
-        self.selecionado.grid(row=1, column=1, pady=5)
+
+        self.renomear.grid(row=1, column=0, pady=5, padx=10)
+        self.nome_label.grid(row=1, column=1, padx=10, pady=5, sticky="ew")
+        self.selecionado.grid(row=1, column=2, pady=5)
 
         # Atributo do nome em si
         self.nome = nome
@@ -54,6 +57,33 @@ class Imagem(ctk.CTkFrame):
             selecionados.pop(self.nome)
         else:
             selecionados[self.nome] = self.imagem_pil
+
+    def editar_nome(self):
+        """
+        Edita o nome de algum arquivo, mantendo a sua extensão
+        """
+        dialog = ctk.CTkInputDialog(text="Digite o novo nome: ", title=self.nome)
+        text = dialog.get_input()
+
+        if text:
+            if cliente.renomear(self.nome, text):
+                self.nome_label.forget()
+                self.nome_label = ctk.CTkLabel(self, text=text)
+                self.nome_label.grid(row=1, column=1, padx=10, pady=5, sticky="ew")
+
+                novo_nome = text + '.' + self.nome.split('.')[-1]
+
+                if self.nome in selecionados:
+                    selecionados.pop(self.nome)
+                    selecionados[novo_nome] = self.imagem_pil
+
+                if self.nome in selecionados_complemento:
+                    selecionados_complemento.pop(self.nome)
+                    selecionados_complemento[novo_nome] = self.imagem_pil
+
+                self.nome = novo_nome
+            else:
+                app.toplevel_window = JanelaFalha(app, arquivos=[self.nome])
 
 
 class Quadro(ctk.CTkScrollableFrame):
