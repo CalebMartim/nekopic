@@ -1,6 +1,8 @@
 # Bibliotecas principais:
 
 import customtkinter as ctk
+import time
+import threading
 from tkinter import filedialog
 from PIL import Image
 from Cliente import Cliente
@@ -11,7 +13,7 @@ Definição de classes:
 
 
 class Imagem(ctk.CTkFrame):
-    def __init__(self, master, nome: str, imagem_pil):
+    def __init__(self, master, nome: str, imagem_pil, pre_selecionado: bool = False):
         super().__init__(master)
 
         # Imagem em si
@@ -37,15 +39,17 @@ class Imagem(ctk.CTkFrame):
         # Atributo de botão de seleção
         self.selecionado = ctk.CTkCheckBox(self, text="", command=self.toggle_selecionar)
 
-        self.renomear.grid(row=1, column=0, pady=5, padx=10)
-        self.nome_label.grid(row=1, column=1, padx=10, pady=5, sticky="ew")
-        self.selecionado.grid(row=1, column=2, pady=5)
-
         # Atributo do nome em si
         self.nome = nome
 
-        # Insere a imagem no hashmap de selecionados
-        selecionados_complemento[self.nome] = self.imagem_pil
+        if pre_selecionado:
+            self.selecionado.select()
+        else:
+            selecionados_complemento[self.nome] = self.imagem_pil
+
+        self.renomear.grid(row=1, column=0, pady=5, padx=10)
+        self.nome_label.grid(row=1, column=1, padx=10, pady=5, sticky="ew")
+        self.selecionado.grid(row=1, column=2, pady=5)
 
     def toggle_selecionar(self):
         if self.nome in selecionados_complemento:
@@ -62,6 +66,9 @@ class Imagem(ctk.CTkFrame):
         """
         Edita o nome de algum arquivo, mantendo a sua extensão
         """
+
+        global pause
+        pause = True
         dialog = ctk.CTkInputDialog(text="Digite o novo nome: ", title=self.nome)
         text = dialog.get_input()
 
@@ -84,6 +91,7 @@ class Imagem(ctk.CTkFrame):
                 self.nome = novo_nome
             else:
                 app.toplevel_window = JanelaFalha(app, arquivos=[self.nome])
+        pause = False
 
 
 class Quadro(ctk.CTkScrollableFrame):
@@ -108,7 +116,7 @@ class Quadro(ctk.CTkScrollableFrame):
         Faz a imagem aparecer de fato
         """
 
-        imagem = Imagem(self, nome, img)
+        imagem = Imagem(self, nome, img, nome in selecionados)
         imagem.grid(row=int(self.row / 4), column=self.col % 4, pady=(0, 20), padx=10)
 
         self.row += 1
@@ -198,6 +206,9 @@ class App(ctk.CTk):
         botao_upload_arquivo = ctk.CTkButton(self, text="+ Inserir imagem", command=self.funcao_upload_arquivo)
         botao_upload_arquivo.grid(row=2, column=0, padx=10, pady=10, columnspan=3)
 
+        # Inicialmente, nenhuma janela sobrepõe a principal
+        self.toplevel_window = None
+
         # Insere as fotos iniciais encontradas no servidor
         fotos_iniciais = []
         for (nome, imagem) in cliente.imagens():
@@ -206,9 +217,6 @@ class App(ctk.CTk):
         # Inicialização do quadro de fotos
         self.quadro_fotos = Quadro(self, fotos_iniciais)
         self.quadro_fotos.grid(row=1, column=0, padx=10, pady=10, columnspan=3, sticky="nsew")
-
-        # Inicialmente, nenhuma janela sobrepõe a principal
-        self.toplevel_window = None
 
     def funcao_upload_arquivo(self):
         """
@@ -246,6 +254,7 @@ class App(ctk.CTk):
                 for nome, img in temp_selecionados.items():
                     novos.append([nome, img])
 
+                self.quadro_fotos.forget()
                 self.quadro_fotos = Quadro(self, novos)
                 self.quadro_fotos.grid(row=1, column=0, padx=10, pady=10, columnspan=3, sticky="nsew")
             else:
@@ -259,6 +268,27 @@ class App(ctk.CTk):
                 self.toplevel_window = JanelaSucesso(self)
             else:
                 self.toplevel_window = JanelaFalha(self, arquivos=resultado[1])
+
+
+def atualizar():
+    """
+    Atualiza a interface gráfica de 10 em 10 segundos
+    """
+
+    global pare
+    global pause
+
+    while not pare:
+        if not pause:
+            novos = []
+            for nome, img in cliente.imagens():
+                novos.append([nome, img])
+            selecionados_complemento.clear()
+            app.quadro_fotos.forget()
+            app.quadro_fotos = Quadro(app, novos)
+            app.quadro_fotos.grid(row=1, column=0, padx=10, pady=10, columnspan=3, sticky="nsew")
+
+        time.sleep(10)
 
 
 if __name__ == '__main__':
@@ -276,4 +306,18 @@ if __name__ == '__main__':
     selecionados_complemento: dict = dict()
 
     app: App = App()
+
+    # Parâmetro para pausar ou parar completamente a thread de atualização
+    pause = False
+    pare = False
+
+    # Utilizamos multi_threading para atualizar em "tempo real" a interface gráfica
+    thread = threading.Thread(target=atualizar)
+    thread.start()
+
     app.mainloop()
+
+    # Para a thread de atualização quando a janela é fechada
+    pare = not pare
+
+    thread.join()
